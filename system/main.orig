@@ -1,0 +1,155 @@
+/*  main.c  - main */
+
+ #include <xinu.h>
+
+void funcA(void){
+	
+	kprintf("Executing PID %d\n",currpid);	
+	//kprintf("Before, Size and ptr : %d,%d\n",(proctab[currpid].vmemlist)->vlength,(proctab[currpid].vmemlist)->vnext);
+	char *ptr = vmalloc(4096*4000);
+	//kprintf("After, Size and ptr : %d,%d\n",(proctab[currpid].vmemlist)->vlength,(proctab[currpid].vmemlist)->vnext);
+	//kprintf("ptr address %d\n",ptr);
+	int i,sum = 0;	
+	for(i=0;i<2049;i++){
+		//sum += *(ptr+4096*i);
+		//kprintf("adr: %d i: %d\n",(ptr+(4096*i)),i);
+		*(ptr+(4096*i)) = 'a';}
+	//kprintf("Sum %d\n",sum);
+	kprintf("Done with PID %d\n",currpid);
+	kprintf("1st id of sleepq %d\n",firstid(sleepq));	
+	//vfree(ptr,(4096*2500));
+	//kprintf("here\n");
+	//kprintf("FREE %d\n",vfree(ptr,(4096*2500)));
+	//*ptr = 'a';
+	//kprintf("HERE\n");
+	//char *ptr1 = (char *)(8192*4096);
+	//*ptr1 = 'b';
+	/*pd_t *pdbr = (pd_t *)proctab[currpid].pdbr;
+	kprintf("PDBR: %d\n",proctab[currpid].pdbr);
+	kprintf("GPDBR: %d\n",super_pdbr);
+	int i=0;
+	while(1){
+		if((pdbr + i)->pd_pres == 0)
+			break;
+		else
+			kprintf("PT page: %d\n",(pdbr + i)->pd_base);
+		i++;
+
+	}*/
+	/*char *ptr1 = vmalloc(6000);
+	kprintf("6000 address %d\n",ptr1);
+	char *ptr2 = vmalloc(4000);
+	kprintf("4000 address %d\n",ptr2);
+	char *ptr3  = vmalloc(28672);
+	kprintf("28762 address %d\n",ptr3);
+	vfree(ptr,4000);
+	kprintf("Error %d\n",vfree(ptr,4000));
+	char *ptr4 = vmalloc(4000);
+	kprintf("4000 address %d\n",ptr4);
+	char *p = (char *)59805696;
+	kprintf("Error %d\n",vfree(p,4000));*/
+	//sleepms(3000);
+	/*for(i=0;i<5;i++)
+		kprintf("PID : %d Val %c\n",currpid,*(ptr+(4096*i)));*/
+
+	sleepms(20000);
+
+	
+	
+
+}
+
+void funcB(void){
+
+
+kprintf("Executing PID %d\n",currpid);	
+	char *ptr = vmalloc(4096*5);
+	//kprintf("4000 address %d\n",ptr);
+	int i,sum = 0;	
+	for(i=0;i<5;i++){
+		//sum += *(ptr+4096*i);
+		*(ptr+4096*i) = 'b';}
+	//kprintf("Sum %d\n",sum);
+	kprintf("Done with PID %d\n",currpid);	
+	sleepms(3000);
+	for(i=0;i<5;i++)
+		kprintf("PID : %d Val %c\n",currpid,*(ptr+(4096*i)));
+
+	sleepms(20000);
+
+
+
+
+}
+
+ process	main(void)
+ {
+	//int i=0;
+ 	/* Run the Xinu shell */
+	
+ 	//recvclr();
+ 	//resume(create(shell, 8192, 50, "shell", 1, CONSOLE));
+
+
+ 	 /*Wait for shell to exit and recreate it */
+
+ 
+ 	/*while (TRUE) {
+ 		receive();
+ 		sleepms(200);
+ 		kprintf("\n\nMain process recreating shell\n\n");
+ 		resume(create(shell, 4096, 20, "shell", 1, CONSOLE));
+ 	}*/
+
+	pid32 prA,prB,prC;
+	prA = resume(vcreate(funcA,4096,4000,10,"funcA",0));
+	//prB = resume(vcreate(funcB,4096,10,9,"funcA",0));
+	//prC = resume(vcreate(funcA,4096,10,10,"funcA",0));
+	sleepms(10000);
+	kprintf("Before kill\n");
+	kill(prA);
+	kprintf("after kill\n");
+	//kill(prB);
+	//kill(prC);
+
+/*pd_t *pdbr = (pd_t *)proctab[currpid].pdbr;
+	kprintf("PDBR: %d\n",proctab[currpid].pdbr);
+	kprintf("GPDBR: %d\n",super_pdbr);
+	int i=0;
+	while(1){
+		if((pdbr + i)->pd_pres == 0)
+			break;
+		else
+			kprintf("PT page: %d\n",(pdbr + i)->pd_base);
+		i++;
+
+	}*/
+	int i;
+	while(i < DISK_SIZE){
+		if(i<NFRAMES){
+
+			if(PDPT_region[i].fr_pid == prA){
+				kprintf("Wrong\n");
+				break;
+			}
+		}
+		else if(i>=NFRAMES && i<FFS_SIZE){
+
+			if(FFS_region[i].fr_pid == prA){	
+				kprintf("Wrong\n");
+				break;
+			}
+		}
+		else{
+		if(Disk_region[i].fr_pid == prA){	
+				kprintf("Wrong\n");
+				break;
+			}
+		}
+		i++;
+
+	}
+	kprintf("everything good!!!!\n");
+ 	return OK;
+    
+ }
